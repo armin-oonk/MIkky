@@ -1,12 +1,14 @@
 #include <Adafruit_NeoPixel.h>
 
 #include <Wire.h>
-#define PIN_WS2812B  5   // Arduino pin that connects to WS2812B
-#define PIN_STRIP2  4  // Second strip
-#define NUM_PIXELS     13  // The number of LEDs (pixels) on WS2812B
+#define PIN_STRIP1  5   // Arduino pin that connects to WS2812B
+#define NUM_PIXELS_1     13  // The number of LEDs (pixels) on WS2812B
 
-Adafruit_NeoPixel WS2812B(NUM_PIXELS, PIN_WS2812B, NEO_WRGB + NEO_KHZ800);
-Adafruit_NeoPixel strip2(11, PIN_STRIP2, NEO_WRGB + NEO_KHZ800);
+#define PIN_STRIP2  4  // Second strip
+#define NUM_PIXELS_2     11  // The number of LEDs (pixels) on WS2812B
+
+Adafruit_NeoPixel strip1(NUM_PIXELS_1, PIN_STRIP1, NEO_WRGB + NEO_KHZ800);
+Adafruit_NeoPixel strip2(NUM_PIXELS_2, PIN_STRIP2, NEO_WRGB + NEO_KHZ800);
 
 const uint32_t red = 0x00ff0000;
 const uint32_t green = 0xff000000;
@@ -26,13 +28,16 @@ float Z_out = 0.0;
 float total = 0.0;
 int X_offset = 0, Y_offset = 0, Z_offset = 0; // Offset values
 
+const int t_duration = 300;
+const int dt = t_duration / (NUM_PIXELS_1 + NUM_PIXELS_2);
+
 void setup() {
   Serial.begin(115200);
   Wire.begin();
   configureADXL345(); // Configure the sensor
 
-  WS2812B.begin(); // INITIALIZE WS2812B strip object (REQUIRED)
-  WS2812B.setBrightness(50);
+  strip1.begin(); // INITIALIZE WS2812B strip object (REQUIRED)
+  strip1.setBrightness(50);
 
   strip2.begin(); // INITIALIZE WS2812B strip object (REQUIRED)
   strip2.setBrightness(50);
@@ -62,7 +67,7 @@ void loop() {
 
   total = sqrt(X_out*X_out + Y_out*Y_out + Z_out*Z_out);
 
-  float dg = 0.2;
+  /*float dg = 0.2;
   float test_g = 0.9;
   for (int pixel = 0; pixel < NUM_PIXELS; pixel++) { 
     if(total > test_g) {
@@ -81,36 +86,59 @@ void loop() {
       strip2.setPixelColor(pixel, black);
     }
     test_g += dg;
-  }
-  /* Loop effect
+  }*/
+  // Loop effect
   if(total > 2.0 && start_time==0) {
     start_time = millis();
   }
   
-  int val = 100+total*50;
-  const int total_t = 500;
+  //int val = 100+total*50;
+  //const int total_t = 500;
   int t = millis() - start_time;
-  int t_per_pixel = total_t / NUM_PIXELS;
-  
-  for (int pixel = 0; pixel < NUM_PIXELS; pixel++) {           // for each pixel
+  //int t_per_pixel = total_t / NUM_PIXELS;
+
+  // Reset alles naar rood
+  for (int pixel = 0; pixel < NUM_PIXELS_1; pixel++) {
+    strip1.setPixelColor(pixel, red);
+  }
+
+  for (int pixel = 0; pixel < NUM_PIXELS_2; pixel++) {
+    strip2.setPixelColor(pixel, red);
+  }
+
+  if(start_time != 0 && t < t_duration) {
+    int pixel = t / dt;
+
+    if(pixel <= NUM_PIXELS_2) {
+      strip2.setPixelColor(NUM_PIXELS_2 - pixel - 1, white);
+      strip2.setPixelColor(NUM_PIXELS_2 - pixel, white);
+      strip2.setPixelColor(NUM_PIXELS_2 - pixel + 1, white);
+    } else {
+      strip1.setPixelColor(pixel - NUM_PIXELS_2 - 1 - 1, white);
+      strip1.setPixelColor(pixel - NUM_PIXELS_2 - 1, white);
+      strip1.setPixelColor(pixel - NUM_PIXELS_2 - 1 + 1, white);
+    }
+  } else {
+    start_time = 0;
+  }
+  /*for (int pixel = 0; pixel < NUM_PIXELS; pixel++) {           // for each pixel
     if(start_time != 0 && t < total_t) {
       if(pixel == t / t_per_pixel) {
-        WS2812B.setPixelColor(pixel, WS2812B.Color(255, 0, 255));  // it only takes effect if pixels.show() is called
-        strip2.setPixelColor(pixel, WS2812B.Color(0, 255, 255));  // it only takes effect if pixels.show() is called
+        strip1.setPixelColor(pixel, yellow);  // it only takes effect if pixels.show() is called
+        strip2.setPixelColor(pixel, yellow);  // it only takes effect if pixels.show() is called
       } else {
-        WS2812B.setPixelColor(pixel, WS2812B.Color(255, 0, 0));  // it only takes effect if pixels.show() is called
-        strip2.setPixelColor(pixel, WS2812B.Color(0, 255, 0));  // it only takes effect if pixels.show() is called
+        strip1.setPixelColor(pixel, red);  // it only takes effect if pixels.show() is called
+        strip2.setPixelColor(pixel, red);  // it only takes effect if pixels.show() is called
       }
     } else {
-      WS2812B.setPixelColor(pixel, WS2812B.Color(255, 0, 0));  // it only takes effect if pixels.show() is called
-      strip2.setPixelColor(pixel, WS2812B.Color(0, 255, 0));  // it only takes effect if pixels.show() is called
+      strip1.setPixelColor(pixel, red);  // it only takes effect if pixels.show() is called
+      strip2.setPixelColor(pixel, red);  // it only takes effect if pixels.show() is called
       start_time = 0;
     }
-  }
-  */
+  }*/
   
-  WS2812B.setBrightness(128);
-  WS2812B.show();  // send the updated pixel colors to the WS2812B hardware.
+  strip1.setBrightness(128);
+  strip1.show();  // send the updated pixel colors to the WS2812B hardware.
 
   strip2.setBrightness(128);
   strip2.show();  // send the updated pixel colors to the WS2812B hardware.
