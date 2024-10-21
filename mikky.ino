@@ -1,25 +1,25 @@
 #include <Adafruit_NeoPixel.h>
 
 #include <Wire.h>
-#define PIN_STRIP1  5   // Arduino pin that connects to WS2812B
-#define NUM_PIXELS_1     13  // The number of LEDs (pixels) on WS2812B
+#define PIN_STRIP1  5   // Arduino pin that connects to WS2813
+#define NUM_PIXELS_1     20  // The number of LEDs (pixels) on WS2813
 
 #define PIN_STRIP2  4  // Second strip
-#define NUM_PIXELS_2     11  // The number of LEDs (pixels) on WS2812B
+#define NUM_PIXELS_2     15  // The number of LEDs (pixels) on WS2813
 
-Adafruit_NeoPixel strip1(NUM_PIXELS_1, PIN_STRIP1, NEO_WRGB + NEO_KHZ800);
-Adafruit_NeoPixel strip2(NUM_PIXELS_2, PIN_STRIP2, NEO_WRGB + NEO_KHZ800);
+Adafruit_NeoPixel strip1(NUM_PIXELS_1, PIN_STRIP1, NEO_RGB + NEO_KHZ800);
+Adafruit_NeoPixel strip2(NUM_PIXELS_2, PIN_STRIP2, NEO_RGB + NEO_KHZ800);
 
-const uint32_t red = 0x00ff0000;
-const uint32_t green = 0xff000000;
-const uint32_t blue = 0x0000ff00;
+const uint32_t red = 0x00ff00;
+const uint32_t green = 0xff0000;
+const uint32_t blue = 0x0000ff;
 
-const uint32_t yellow = 0xffff0000;
-const uint32_t cyan = 0x00ffff00;
-const uint32_t magenta = 0xff00ff00;
+const uint32_t yellow = 0xffff00;
+const uint32_t cyan = 0x00ffff;
+const uint32_t magenta = 0xff00ff;
 
-const uint32_t white = 0xffffff00;
-const uint32_t black = 0x00000000;
+const uint32_t white = 0xffffff;
+const uint32_t black = 0x000000;
 
 int ADXL345 = 0x53; // The ADXL345 sensor I2C address
 float X_out = 0.0;
@@ -67,26 +67,6 @@ void loop() {
 
   total = sqrt(X_out*X_out + Y_out*Y_out + Z_out*Z_out);
 
-  /*float dg = 0.2;
-  float test_g = 0.9;
-  for (int pixel = 0; pixel < NUM_PIXELS; pixel++) { 
-    if(total > test_g) {
-      if(pixel < 4) {
-        WS2812B.setPixelColor(pixel, green);
-        strip2.setPixelColor(pixel, green);
-      }else if(pixel < 8) {
-        WS2812B.setPixelColor(pixel, yellow);
-        strip2.setPixelColor(pixel, yellow);
-      } else {
-        WS2812B.setPixelColor(pixel, red);
-        strip2.setPixelColor(pixel, red);
-      }
-    } else {
-      WS2812B.setPixelColor(pixel, black);
-      strip2.setPixelColor(pixel, black);
-    }
-    test_g += dg;
-  }*/
   // Loop effect
   if(total > 2.0 && start_time==0) {
     start_time = millis();
@@ -121,21 +101,6 @@ void loop() {
   } else {
     start_time = 0;
   }
-  /*for (int pixel = 0; pixel < NUM_PIXELS; pixel++) {           // for each pixel
-    if(start_time != 0 && t < total_t) {
-      if(pixel == t / t_per_pixel) {
-        strip1.setPixelColor(pixel, yellow);  // it only takes effect if pixels.show() is called
-        strip2.setPixelColor(pixel, yellow);  // it only takes effect if pixels.show() is called
-      } else {
-        strip1.setPixelColor(pixel, red);  // it only takes effect if pixels.show() is called
-        strip2.setPixelColor(pixel, red);  // it only takes effect if pixels.show() is called
-      }
-    } else {
-      strip1.setPixelColor(pixel, red);  // it only takes effect if pixels.show() is called
-      strip2.setPixelColor(pixel, red);  // it only takes effect if pixels.show() is called
-      start_time = 0;
-    }
-  }*/
   
   strip1.setBrightness(128);
   strip1.show();  // send the updated pixel colors to the WS2812B hardware.
