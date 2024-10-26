@@ -1,14 +1,57 @@
 #include <Adafruit_NeoPixel.h>
 
 #include <Wire.h>
+// Onderste strip
 #define PIN_STRIP1  5   // Arduino pin that connects to WS2813
 #define NUM_PIXELS_1     20  // The number of LEDs (pixels) on WS2813
 
-#define PIN_STRIP2  4  // Second strip
+// bovenste st
+#define PIN_STRIP2  4  
 #define NUM_PIXELS_2     15  // The number of LEDs (pixels) on WS2813
 
 Adafruit_NeoPixel strip1(NUM_PIXELS_1, PIN_STRIP1, NEO_RGB + NEO_KHZ800);
 Adafruit_NeoPixel strip2(NUM_PIXELS_2, PIN_STRIP2, NEO_RGB + NEO_KHZ800);
+
+// ledmapping starts at the bottom
+struct led_t {
+  int strip;
+  int led;
+};
+
+// For each vertical led upto 2 leds are possible
+#define NR_VERTICAL_LEDS 25
+#define NR_LEDS_PER_POS 2
+
+Adafruit_NeoPixel ledstrips[] = {strip1, strip2};
+led_t led_mapping[NR_VERTICAL_LEDS][NR_LEDS_PER_POS];
+
+void init_led_mapping() {
+  for(int i=0; i<10; i++) {
+    // Define onderste strips
+    led_mapping[i][0].strip = 0;
+    led_mapping[i][0].led = 9-i;
+
+    led_mapping[i][1].strip = 0;
+    led_mapping[i][1].led = 10 + i;
+  }
+
+  for(int i=10; i<NR_VERTICAL_LEDS; i++) {
+      led_mapping[i][0].strip = 1;
+      led_mapping[i][0].led = i-10;
+
+      // Geen tweede led
+      led_mapping[i][1].strip = -1;
+      led_mapping[i][1].led = -1;
+  }
+}
+
+void set_vertical_led(int lednr, uint32_t color) {
+  for(int i=0; i<NR_LEDS_PER_POS; i++) {
+    if(led_mapping[lednr][i].strip >= 0 && led_mapping[lednr][i].strip < NR_LEDS_PER_POS) {
+      ledstrips[led_mapping[lednr][i].strip].setPixelColor(led_mapping[lednr][i].led, color);
+    }
+  }
+}
 
 const uint32_t red = 0x00ff00;
 const uint32_t green = 0xff0000;
@@ -33,6 +76,9 @@ const int dt = t_duration / (NUM_PIXELS_1 + NUM_PIXELS_2);
 
 void setup() {
   Serial.begin(115200);
+
+  init_led_mapping();
+  
   Wire.begin();
   configureADXL345(); // Configure the sensor
 
@@ -77,8 +123,16 @@ void loop() {
   int t = millis() - start_time;
   //int t_per_pixel = total_t / NUM_PIXELS;
 
+  for(int x=0; x<NR_VERTICAL_LEDS; x++) {
+    int lednr = (millis() / 1000)%NR_VERTICAL_LEDS;
+    if(x == lednr) {
+      set_vertical_led(x, red);
+    } else {
+      set_vertical_led(x, black);
+    }
+  }
   // Reset alles naar rood
-  for (int pixel = 0; pixel < NUM_PIXELS_1; pixel++) {
+  /*for (int pixel = 0; pixel < NUM_PIXELS_1; pixel++) {
     strip1.setPixelColor(pixel, red);
   }
 
@@ -100,7 +154,7 @@ void loop() {
     }
   } else {
     start_time = 0;
-  }
+  }*/
   
   strip1.setBrightness(128);
   strip1.show();  // send the updated pixel colors to the WS2812B hardware.
