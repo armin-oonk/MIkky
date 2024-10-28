@@ -25,9 +25,7 @@ const uint32_t white = 0xffffff;
 const uint32_t black = 0x000000;
 
 int ADXL345 = 0x53; // The ADXL345 sensor I2C address
-float X_out = 0.0;
-float Y_out = 0.0;
-float Z_out = 0.0;
+
 float total = 0.0;
 int X_offset = 0, Y_offset = 0, Z_offset = 0; // Offset values
 
@@ -54,18 +52,7 @@ unsigned prev_time = 0;
 unsigned start_time = 0;
 
 void loop() {
-  Wire.beginTransmission(ADXL345);
-  Wire.write(0x32); // Start with register 0x32 (ACCEL_XOUT_H)
-  Wire.endTransmission(false);
-  Wire.requestFrom(ADXL345, 6, true);
-  X_out = (Wire.read() | Wire.read() << 8);
-  X_out = X_out / 256;
-  Y_out = (Wire.read() | Wire.read() << 8);
-  Y_out = Y_out / 256;
-  Z_out = (Wire.read() | Wire.read() << 8);
-  Z_out = Z_out / 256;
-
-  total = sqrt(X_out*X_out + Y_out*Y_out + Z_out*Z_out);
+  total = get_total_g();
 
   // Loop effect
   if(total > 2.0 && start_time==0) {
