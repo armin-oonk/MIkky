@@ -36,6 +36,16 @@ void init_led_mapping() {
   }
 }
 
+void set_vertical_led(int lednr, uint8_t red, uint8_t green, uint8_t blue) {
+  //uint32_t color =  (uint32_t)green<<16 & (uint32_t)blue<<8 & (uint32_t)red;
+  //set_vertical_led(lednr, color); 
+  for(int i=0; i<NR_LEDS_PER_POS; i++) {
+    if(led_mapping[lednr][i].strip >= 0 && led_mapping[lednr][i].strip < NR_LEDS_PER_POS) {
+      ledstrips[led_mapping[lednr][i].strip].setPixelColor(led_mapping[lednr][i].led, green, red, blue);
+    }
+  }
+}
+
 void set_vertical_led(int lednr, uint32_t color) {
   for(int i=0; i<NR_LEDS_PER_POS; i++) {
     if(led_mapping[lednr][i].strip >= 0 && led_mapping[lednr][i].strip < NR_LEDS_PER_POS) {

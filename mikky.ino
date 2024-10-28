@@ -30,7 +30,7 @@ float total = 0.0;
 int X_offset = 0, Y_offset = 0, Z_offset = 0; // Offset values
 
 const int t_duration = 300;
-const int dt = t_duration / (NUM_PIXELS_1 + NUM_PIXELS_2);
+const int dt = t_duration / NR_VERTICAL_LEDS;
 
 void setup() {
   Serial.begin(115200);
@@ -50,6 +50,10 @@ void configureADXL345() {
 }
 unsigned prev_time = 0;
 unsigned start_time = 0;
+unsigned wait_animation = 0;
+unsigned long wait_animation_time = 0;
+long wait_animation_delay = 100;
+
 
 void loop() {
   total = get_total_g();
@@ -59,43 +63,29 @@ void loop() {
     start_time = millis();
   }
   
-  //int val = 100+total*50;
-  //const int total_t = 500;
   int t = millis() - start_time;
-  //int t_per_pixel = total_t / NUM_PIXELS;
 
-  for(int x=0; x<NR_VERTICAL_LEDS; x++) {
-    int lednr = (millis() / 1000)%NR_VERTICAL_LEDS;
-    if(x == lednr) {
-      set_vertical_led(x, red);
-    } else {
-      set_vertical_led(x, black);
-    }
-  }
   // Reset alles naar rood
-  /*for (int pixel = 0; pixel < NUM_PIXELS_1; pixel++) {
-    strip1.setPixelColor(pixel, red);
+  for(int x=0; x<NR_VERTICAL_LEDS; x++) {
+    //set_vertical_led(x, red);
+    int flicker = (2*(x + wait_animation)) % NR_VERTICAL_LEDS;
+    set_vertical_led(x, 255, 2 * flicker, 0);
   }
 
-  for (int pixel = 0; pixel < NUM_PIXELS_2; pixel++) {
-    strip2.setPixelColor(pixel, red);
+  if(millis() - wait_animation_time > wait_animation_delay) {
+    wait_animation++;
+    wait_animation_time = millis();
   }
 
+  // Start animation
   if(start_time != 0 && t < t_duration) {
     int pixel = t / dt;
-
-    if(pixel <= NUM_PIXELS_2) {
-      strip2.setPixelColor(NUM_PIXELS_2 - pixel - 1, white);
-      strip2.setPixelColor(NUM_PIXELS_2 - pixel, white);
-      strip2.setPixelColor(NUM_PIXELS_2 - pixel + 1, white);
-    } else {
-      strip1.setPixelColor(pixel - NUM_PIXELS_2 - 1 - 1, white);
-      strip1.setPixelColor(pixel - NUM_PIXELS_2 - 1, white);
-      strip1.setPixelColor(pixel - NUM_PIXELS_2 - 1 + 1, white);
-    }
+    set_vertical_led(pixel - 1, white);
+    set_vertical_led(pixel, white);
+    set_vertical_led(pixel + 1, white);
   } else {
     start_time = 0;
-  }*/
+  }
   
   show_led_strips(128);
 }
